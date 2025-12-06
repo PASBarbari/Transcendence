@@ -8,9 +8,9 @@ aiohappyeyeballs==2.5.0
     # via
     #   -r requirements.in
     #   aiohttp
-aiohttp>=3.12.14
+aiohttp==3.13.2
     # via -r requirements.in
-aiosignal>=1.4.0
+aiosignal==1.4.0
     # via
     #   -r requirements.in
     #   aiohttp
@@ -35,9 +35,7 @@ asgiref==3.8.1
     #   django
     #   django-cors-headers
 async-timeout==5.0.1
-    # via
-    #   -r requirements.in
-    #   redis
+    # via -r requirements.in
 attrs==25.1.0
     # via
     #   -r requirements.in
@@ -126,7 +124,7 @@ cryptography==44.0.2
     #   service-identity
 daphne==4.1.2
     # via -r requirements.in
-django==5.2.4
+django==5.1.15
     # via
     #   -r requirements.in
     #   channels
@@ -162,7 +160,7 @@ django-redis==5.4.0
     # via -r requirements.in
 django-rest-swagger==2.2.0
     # via -r requirements.in
-djangorestframework>=3.16.0
+djangorestframework==3.16.1
     # via
     #   -r requirements.in
     #   django-rest-swagger
@@ -333,7 +331,7 @@ redis==5.2.1
     #   -r requirements.in
     #   channels-redis
     #   django-redis
-requests>=2.32.4
+requests==2.32.5
     # via
     #   -r requirements.in
     #   coreapi
@@ -380,6 +378,7 @@ txaio==23.1.1
 typing-extensions==4.12.2
     # via
     #   -r requirements.in
+    #   aiosignal
     #   jwcrypto
     #   minio
     #   psycopg
@@ -397,7 +396,7 @@ uritemplate==4.1.1
     #   -r requirements.in
     #   coreapi
     #   drf-yasg
-urllib3>=2.5.0
+urllib3==2.6.0
     # via
     #   -r requirements.in
     #   minio
