@@ -130,12 +130,11 @@ secrets:
     secretKey: "bipyIy0zaGN4eThqcTlfdy0qXnlhamwwajcyYXB3cEE1KXM0NTczXjYlazJjZ2IqOT0t"
   oauth:
     google:
-      clientId: "PLACEHOLDER_GOOGLE_CLIENT_ID"
-      clientSecret: "PLACEHOLDER_GOOGLE_CLIENT_SECRET"
+      clientId: "ciaone"
+      clientSecret: "ciaone"
     fortytwo:
-      clientId: "u-s4t2ud-2bfa13277753ae18dd3d2a1e2558656b1dddb45e275126ae690788817a769a9a4e"
-      clientSecret: "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"
-
+      clientId: "tuna"
+      clientSecret: "tuna"
 # PostgreSQL subchart configuration (optional, if you want this chart to deploy its own DB)
 # If you use an external DB, you can remove or disable this 'db' section
 # and ensure DB_HOST, DB_USER, DB_NAME, DB_PASSWORD are correctly set for the external DB.

@@ -47,11 +47,11 @@ global:
     # OAuth/SSO credentials
     oauth:
       google:
-        clientId: "PLACEHOLDER_GOOGLE_CLIENT_ID"
-        clientSecret: "PLACEHOLDER_GOOGLE_CLIENT_SECRET"
+        clientId: "ciaone"
+        clientSecret: "ciaone"
       42:
-        clientId: "u-s4t2ud-2bfa13277753ae18dd3d2a1e2558656b1dddb45e275126ae690788817a769a9a4e"
-        clientSecret: "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"
+        clientId: "tuna"
+        clientSecret: "tuna"
 
 # Frontend-specific overrides
 frontend:
@@ -183,12 +183,11 @@ login-service-chart:
     servicePassword: "123"
     apiKeys:
       google:
-        clientId: "PLACEHOLDER_GOOGLE_CLIENT_ID"
-        clientSecret: "PLACEHOLDER_GOOGLE_CLIENT_SECRET"
+        clientId: "ciaone"
+        clientSecret: "ciaone"
       fortytwo:
-        clientId: "u-s4t2ud-2ed2ad1c13beeb96b93f058e4aed0b55e3e8e3c5e35d0d3ea0a6d47d1f8e6c2e5f"
-        clientSecret: "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"
-
+        clientId: "tuna"
+        clientSecret: "tuna"
 # Continue with other service charts...
 user-service-chart:
   secrets:
