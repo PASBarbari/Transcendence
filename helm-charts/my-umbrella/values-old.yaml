@@ -1,0 +1,238 @@
+installCrds:
+  enabled: true
+
+# Global values shared across all services
+global:
+  environment: production
+  helpers:
+    enabled: true
+
+  # Secret values referenced by all sub-charts
+  secrets:
+    # Database credentials
+    databases:
+      chat:
+        name: "chat_db"
+        user: "pasquale"
+        password: "123"
+      login:
+        name: "login_db"
+        user: "pasquale"
+        password: "123456"
+      user:
+        name: "user_db"
+        user: "pasquale" 
+        password: "123"
+      notifications:
+        name: "notifications_db"
+        user: "pasquale"
+        password: "123"
+      pong:
+        name: "pong_db"
+        user: "pasquale"
+        password: "123"
+    
+    # Admin credentials for each service
+    admin:
+      username: "pasquale"
+      email: "pasquale@example.com"
+      password: "123456"
+    
+    # Service authentication
+    serviceAuth:
+      password: "123"
+      apiKey: "casealbero"
+      secretKey: "bipyIy0zaGN4eThqcTlfdy0qXnlhamwwajcyYXB3cEA1KXM0NTczXjYlazJjZ2IqOT0t"
+    
+    # OAuth/SSO credentials
+    oauth:
+      google:
+        clientId: "PLACEHOLDER_GOOGLE_CLIENT_ID"
+        clientSecret: "PLACEHOLDER_GOOGLE_CLIENT_SECRET"
+      42:
+        clientId: "u-s4t2ud-2bfa13277753ae18dd3d2a1e2558656b1dddb45e275126ae690788817a769a9a4e"
+        clientSecret: "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"
+
+# Frontend-specific overrides
+frontend:
+  hostAliases:
+    - ip: "192.168.49.2"
+      hostnames:
+        - "trascendence.42firenze.it"
+  image:
+    repository: marcor42/frontend
+    tag: latest
+
+# Service controls
+front-end:
+  enabled: true
+
+chat-service:
+  enabled: true
+
+# Certificate Manager Configuration
+cert-manager:
+  enabled: true
+  installCRDs: false
+  
+  webhook:
+    enabled: true
+  
+  cainjector:
+    enabled: true
+
+cert-manager-config:
+  clusterIssuers:
+    selfsigned:
+      enabled: true
+      name: selfsigned-issuer
+    letsencrypt:
+      enabled: false
+      name: letsencrypt-prod
+      email: qualcosa2001@gmail.com
+      server: https://acme-v02.api.letsencrypt.org/directory
+      privateKeySecretName: letsencrypt-prod
+      solvers:
+        - http01:
+            ingressClass: traefik
+
+# Global ingress settings
+ingress:
+  enabled: true
+  className: traefik
+  host: trascendence.42firenze.it
+  annotations:
+    cert-manager.io/cluster-issuer: selfsigned-issuer
+  tls:
+    enabled: true
+    secretName: trascendence-tls
+
+# Persistence settings
+persistence:
+  enabled: true
+  chat:
+    enabled: true
+    size: 512Mi
+
+# Chart-specific configurations
+# FRONT-END CHART
+front-end-chart:
+  ingress:
+    enabled: true
+    host: trascendence.42firenze.it
+
+# CHAT SERVICE CHART
+chat-service-chart:
+  image:
+    repository: bombatomica/chat
+    tag: latest
+    pullPolicy: Always
+  
+  # Reference global values for secrets - use actual values, not template strings
+  secrets:
+    database:
+      name: "chat_db"
+      user: "pasquale"
+      password: "123"
+    admin:
+      username: "pasquale"
+      email: "pasquale@example.com"
+      password: "123456"
+      secretKey: "bipyIy0zaGN4eThqcTlfdy0qXnlhamwwajcyYXB3cEA1KXM0NTczXjYlazJjZ2IqOT0t"
+    servicePassword: "123"
+  
+  configMap:
+    data:
+      DEBUG: "True"
+      DJANGO_SETTINGS_MODULE: "chat.settings"
+      CHAT_PORT: "8000"
+      CHAT_HOST: "0.0.0.0"
+      DB_HOST: "trascendence-chat-db-service"
+      DB_PORT: "5432"
+      DB_NAME: "chat_db"
+      DB_USER: "pasquale"
+      DB_PASSWORD: "123"
+      REDIS_HOST: "redis"
+      REDIS_PORT: "6379"
+      REDIS_CHANNEL_DB: "1"
+      LOGIN_URL: "http://trascendence-login-service:8000"
+      USER_URL: "http://user-service:8000"
+      NOTIFICATIONS_URL: "http://notifications-service:8000"
+      PONG_URL: "http://pong-service:8000"
+      OAUTH2_INTROSPECTION_URL: "http://trascendence-login-service:8000/o/introspect/"
+      SERVICE_PASSWORD: "123"
+      ALLOWED_HOSTS: "*"
+  
+  ingress:
+    enabled: true
+    host: trascendence.42firenze.it
+    path: /api/chat
+
+# LOGIN SERVICE CHART
+login-service-chart:
+  secrets:
+    database:
+      name: "login_db"
+      user: "pasquale"
+      password: "123456"
+    admin:
+      username: "pasquale"
+      email: "pasquale@example.com"
+      password: "123456"
+      secretKey: "bipyIy0zaGN4eThqcTlfdy0qXnlhamwwajcyYXB3cEA1KXM0NTczXjYlazJjZ2IqOT0t"
+    servicePassword: "123"
+    apiKeys:
+      google:
+        clientId: "PLACEHOLDER_GOOGLE_CLIENT_ID"
+        clientSecret: "PLACEHOLDER_GOOGLE_CLIENT_SECRET"
+      fortytwo:
+        clientId: "u-s4t2ud-2ed2ad1c13beeb96b93f058e4aed0b55e3e8e3c5e35d0d3ea0a6d47d1f8e6c2e5f"
+        clientSecret: "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"
+
+# Continue with other service charts...
+user-service-chart:
+  secrets:
+    database:
+      name: "{{ .Values.global.secrets.databases.user.name }}"
+      user: "{{ .Values.global.secrets.databases.user.user }}"
+      password: "{{ .Values.global.secrets.databases.user.password }}"
+    admin:
+      username: "{{ .Values.global.secrets.admin.username }}"
+      email: "{{ .Values.global.secrets.admin.email }}"
+      password: "{{ .Values.global.secrets.admin.password }}"
+      secretKey: "{{ .Values.global.secrets.serviceAuth.secretKey }}"
+    api:
+      servicePassword: "{{ .Values.global.secrets.serviceAuth.password }}"
+      apiKey: "{{ .Values.global.secrets.serviceAuth.apiKey }}"
+      secretKey: "{{ .Values.global.secrets.serviceAuth.secretKey }}"
+
+pong-service-chart:
+  secrets:
+    database:
+      name: "{{ .Values.global.secrets.databases.pong.name }}"
+      user: "{{ .Values.global.secrets.databases.pong.user }}"
+      password: "{{ .Values.global.secrets.databases.pong.password }}"
+    admin:
+      username: "{{ .Values.global.secrets.admin.username }}"
+      email: "{{ .Values.global.secrets.admin.email }}"
+      password: "{{ .Values.global.secrets.admin.password }}"
+      secretKey: "{{ .Values.global.secrets.serviceAuth.secretKey }}"
+    api:
+      servicePassword: "{{ .Values.global.secrets.serviceAuth.password }}"
+      apiKey: "{{ .Values.global.secrets.serviceAuth.apiKey }}"
+      secretKey: "{{ .Values.global.secrets.serviceAuth.secretKey }}"
+
+notifications-service-chart:
+  secrets:
+    database:
+      name: "{{ .Values.global.secrets.databases.notifications.name }}"
+      user: "{{ .Values.global.secrets.databases.notifications.user }}"
+      password: "{{ .Values.global.secrets.databases.notifications.password }}"
+    admin:
+      username: "{{ .Values.global.secrets.admin.username }}"
+      email: "{{ .Values.global.secrets.admin.email }}"
+      password: "{{ .Values.global.secrets.admin.password }}"
+    api:
+      servicePassword: "{{ .Values.global.secrets.serviceAuth.password }}"
+      apiKey: "{{ .Values.global.secrets.serviceAuth.apiKey }}"
+      secretKey: "{{ .Values.global.secrets.serviceAuth.secretKey }}"

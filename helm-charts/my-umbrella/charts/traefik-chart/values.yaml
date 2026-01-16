@@ -1,0 +1,76 @@
+# Default values for traefik-chart
+enabled: true
+
+# Since CRDs are installed by the setup script, disable the Job
+installCRDs: false
+
+namespace:
+  name: kube-system
+  create: false  # kube-system already exists
+
+image:
+  repository: traefik
+  tag: "v3.3"
+  pullPolicy: IfNotPresent
+
+deployment:
+  name: traefik
+  replicas: 1
+  
+service:
+  name: traefik
+  type: LoadBalancer
+  ports:
+    web:
+      port: 80
+      targetPort: web
+      protocol: TCP
+    websecure:
+      port: 443
+      targetPort: websecure
+      protocol: TCP
+
+config:
+  # Traefik static configuration
+  entryPoints:
+    web:
+      address: ":80"
+      http:
+        redirections:
+          entryPoint:
+            to: websecure
+            scheme: https
+    websecure:
+      address: ":443"
+  
+  providers:
+    kubernetes:
+      ingressClass: traefik
+    kubernetescrd: {}
+    
+  certificatesResolvers:
+    default:
+      acme:
+        email: admin@trascendence.42firenze.it
+        storage: /data/acme.json
+        httpChallenge:
+          entryPoint: web
+
+rbac:
+  create: true
+
+serviceAccount:
+  create: true
+  name: traefik
+
+resources:
+  limits:
+    cpu: 1000m
+    memory: 1000Mi
+  requests:
+    cpu: 100m
+    memory: 50Mi
+
+nodeSelector: {}
+tolerations: []
+affinity: {}

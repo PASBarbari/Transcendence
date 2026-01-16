@@ -1,0 +1,217 @@
+# Cert-manager configuration
+cert-manager:
+  enabled: true
+  installCRDs: false  # CRDs already exist
+  
+  # Resources for cert-manager controller
+  resources:
+    requests:
+      cpu: 10m
+      memory: 32Mi
+    limits:
+      cpu: 100m
+      memory: 128Mi
+  
+  # Webhook configuration
+  webhook:
+    resources:
+      requests:
+        cpu: 10m
+        memory: 32Mi
+      limits:
+        cpu: 100m
+        memory: 128Mi
+  
+  # CA Injector configuration
+  cainjector:
+    resources:
+      requests:
+        cpu: 10m
+        memory: 32Mi
+      limits:
+        cpu: 100m
+        memory: 128Mi
+
+clusterIssuers:
+  letsencrypt:
+    enabled: false
+    # name: letsencrypt-prod
+    # email: qualcosa2001@gmail.com
+    # server: https://acme-v02.api.letsencrypt.org/directory
+    # privateKeySecretName: letsencrypt-prod
+    # solvers:
+    #   - http01:
+    #       ingressClass: traefik  # Changed from nginx to traefik as per your setup
+
+  selfsigned:
+    enabled: true
+    name: selfsigned-issuer
+
+# Certificates configuration
+certificates:
+  frontend:
+    enabled: true
+    name: frontend-cert
+    namespace: front-end
+    secretName: nginx-tls
+    issuerRef:
+      name: selfsigned-issuer  # selfsigned for development
+      kind: ClusterIssuer
+    commonName: trascendence.42firenze.it
+    dnsNames:
+      - trascendence.42firenze.it
+      - localhost
+      - 127.0.0.1
+      
+  chat:
+    enabled: true
+    name: chat-tls
+    namespace: chat
+    secretName: chat-tls
+    issuerRef:
+      name: selfsigned-issuer
+      kind: ClusterIssuer
+    commonName: trascendence.42firenze.it
+    dnsNames:
+      - trascendence.42firenze.it
+      - localhost
+      - 127.0.0.1
+
+  # Add your other certificates
+  elasticsearch:
+    enabled: true
+    name: elasticsearch-cert
+    namespace: observability
+    secretName: elasticsearch-es-http-certs-public
+    issuerRef:
+      name: selfsigned-issuer
+      kind: ClusterIssuer
+    commonName: trascendence.42firenze.it
+    dnsNames:
+      - trascendence.42firenze.it
+      
+  kibana:
+    enabled: true
+    name: kibana-cert
+    namespace: observability
+    secretName: kibana-tls
+    issuerRef:
+      name: selfsigned-issuer
+      kind: ClusterIssuer
+    commonName: trascendence.42firenze.it
+    dnsNames:
+      - trascendence.42firenze.it
+
+  fleet:
+    enabled: true
+    name: fleet-server-cert
+    namespace: observability
+    secretName: fleet-server-cert
+    issuerRef:
+      name: selfsigned-issuer
+      kind: ClusterIssuer
+    commonName: fleet-server.42firenze.it
+    dnsNames:
+      - fleet-server.42firenze.it
+
+  # Observability certificates for ECK
+  observability-elasticsearch:
+    enabled: true
+    name: observability-elasticsearch-cert
+    namespace: default
+    secretName: trascendence-elasticsearch-es-http-cert
+    issuerRef:
+      name: selfsigned-issuer
+      kind: ClusterIssuer
+    commonName: trascendence-elasticsearch-es-http
+    dnsNames:
+      - trascendence-elasticsearch-es-http
+      - trascendence-elasticsearch-es-http.default.svc.cluster.local
+      - localhost
+      - 127.0.0.1
+
+  observability-kibana:
+    enabled: true
+    name: observability-kibana-cert
+    namespace: default
+    secretName: trascendence-kibana-kb-http-cert
+    issuerRef:
+      name: selfsigned-issuer
+      kind: ClusterIssuer
+    commonName: kibana.trascendence.local
+    dnsNames:
+      - kibana.trascendence.local
+      - trascendence-kibana-kb-http
+      - trascendence-kibana-kb-http.default.svc.cluster.local
+      - localhost
+      - 127.0.0.1
+
+  observability-grafana:
+    enabled: true
+    name: observability-grafana-cert
+    namespace: default
+    secretName: grafana-tls
+    issuerRef:
+      name: selfsigned-issuer
+      kind: ClusterIssuer
+    commonName: grafana.trascendence.local
+    dnsNames:
+      - grafana.trascendence.local
+      - localhost
+      - 127.0.0.1
+
+  login:
+    enabled: true
+    name: login-tls
+    namespace: login
+    secretName: login-tls
+    issuerRef:
+      name: selfsigned-issuer
+      kind: ClusterIssuer
+    commonName: trascendence.42firenze.it
+    dnsNames:
+      - trascendence.42firenze.it
+      - localhost
+      - 127.0.0.1
+      
+  user:
+    enabled: true
+    name: user-tls
+    namespace: user
+    secretName: user-tls
+    issuerRef:
+      name: selfsigned-issuer
+      kind: ClusterIssuer
+    commonName: trascendence.42firenze.it
+    dnsNames:
+      - trascendence.42firenze.it
+      - localhost
+      - 127.0.0.1
+      
+  pong:
+    enabled: true
+    name: pong-tls
+    namespace: pong
+    secretName: pong-tls
+    issuerRef:
+      name: selfsigned-issuer
+      kind: ClusterIssuer
+    commonName: trascendence.42firenze.it
+    dnsNames:
+      - trascendence.42firenze.it
+      - localhost
+      - 127.0.0.1
+      
+  notifications:
+    enabled: true
+    name: notifications-tls
+    namespace: notifications
+    secretName: notifications-tls
+    issuerRef:
+      name: selfsigned-issuer
+      kind: ClusterIssuer
+    commonName: trascendence.42firenze.it
+    dnsNames:
+      - trascendence.42firenze.it
+      - localhost
+      - 127.0.0.1

@@ -1,0 +1,111 @@
+# Default values for api-docs service chart
+replicaCount: 1
+
+image:
+  repository: bombatomica/docs
+  pullPolicy: Always
+  tag: latest
+
+nameOverride: ""
+fullnameOverride: ""
+
+namespace:
+  name: api-docs
+  create: true
+
+service:
+  type: ClusterIP
+  port: 8005
+  targetPort: 8005
+
+serviceAccount:
+  create: true
+  annotations: {}
+  automount: true
+  name: "api-sa"
+
+resources:
+  limits:
+    cpu: 200m
+    memory: 256Mi
+  requests:
+    cpu: 100m
+    memory: 128Mi
+
+configMap:
+  data:
+    DEBUG: "False"
+    DJANGO_SETTINGS_MODULE: "api_docs.settings"
+    API_DOCS_PORT: "8005"
+    API_DOCS_HOST: "0.0.0.0"
+    # Microservice endpoints - following the same pattern as chat service
+    MICROSERVICES_LOGIN: "http://{{ .Release.Name }}-login-service.login.svc.cluster.local:8000"
+    MICROSERVICES_CHAT: "http://{{ .Release.Name }}-chat-service.chat.svc.cluster.local:8000"
+    MICROSERVICES_USER: "http://{{ .Release.Name }}-user-service.user.svc.cluster.local:8000"
+    MICROSERVICES_NOTIFICATIONS: "http://{{ .Release.Name }}-notifications-service.notifications.svc.cluster.local:8000"
+    MICROSERVICES_PONG: "http://{{ .Release.Name }}-pong-service.pong.svc.cluster.local:8000"
+    # Add allowed hosts for Kubernetes service discovery
+    K8S_SERVICE_HOSTS: "{{ .Release.Name }}-login-service,{{ .Release.Name }}-login-service.login.svc.cluster.local,{{ .Release.Name }}-chat-service,{{ .Release.Name }}-chat-service.chat.svc.cluster.local,{{ .Release.Name }}-user-service,{{ .Release.Name }}-user-service.user.svc.cluster.local,{{ .Release.Name }}-notifications-service,{{ .Release.Name }}-notifications-service.notifications.svc.cluster.local,{{ .Release.Name }}-pong-service,{{ .Release.Name }}-pong-service.pong.svc.cluster.local,{{ .Release.Name }}-api-docs-service,{{ .Release.Name }}-api-docs-service.api-docs.svc.cluster.local"
+    ALLOWED_HOSTS: "*"
+
+secret:
+  data:
+    SECRET_KEY: "bipyIy0zaGN4eThqcTlfdy0qXnlhamwwajcyYXB3cEE1KXM0NTczXjYlazJjZ2IqOT0t"
+
+tolerations: []
+
+affinity: {}
+
+nodeSelector: {}
+
+autoscaling:
+  enabled: false
+  minReplicas: 1
+  maxReplicas: 3
+  targetCPUUtilizationPercentage: 80
+  targetMemoryUtilizationPercentage: 80
+
+livenessProbe:
+  httpGet:
+    path: /health/
+    port: http
+  initialDelaySeconds: 30
+  periodSeconds: 10
+  timeoutSeconds: 5
+  failureThreshold: 3
+
+readinessProbe:
+  httpGet:
+    path: /health/
+    port: http
+  initialDelaySeconds: 5
+  periodSeconds: 5
+  timeoutSeconds: 3
+  failureThreshold: 3
+
+startupProbe:
+  httpGet:
+    path: /health/
+    port: http
+  initialDelaySeconds: 10
+  periodSeconds: 10
+  timeoutSeconds: 5
+  failureThreshold: 30
+
+ingress:
+  enabled: true
+  host: trascendence.42firenze.it
+  path: /api/docs
+  certManager:
+    clusterIssuer: selfsigned-issuer
+  tls:
+    enabled: true
+    secretName: api-docs-tls
+
+# ServiceMonitor for Prometheus (optional)
+serviceMonitor:
+  enabled: false
+  interval: 30s
+  scrapeTimeout: 10s
+  path: /metrics
+  namespace: observability

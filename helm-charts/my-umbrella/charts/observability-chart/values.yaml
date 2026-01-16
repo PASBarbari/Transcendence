@@ -1,0 +1,275 @@
+# Simplified Observability Stack Configuration
+# Filebeat → Logstash → Elasticsearch → Kibana + Prometheus + Grafana
+
+# Default values for observability-chart.
+# This is a YAML-formatted file.
+# Declare variables to be substituted into your templates.
+
+# Chart configuration
+nameOverride: ""
+fullnameOverride: ""
+
+# Service Account
+serviceAccount:
+  # Specifies whether a service account should be created
+  create: false
+  # Annotations to add to the service account
+  annotations: {}
+  # The name of the service account to use.
+  # If not set and create is true, a name is generated using the fullname template
+  name: ""
+
+# Global Configuration
+global:
+  namespace:
+    create: false
+    name: "default"
+# ==============================================
+# PROMETHEUS + GRAFANA (Keep Existing)
+# ==============================================
+prometheus:
+  enabled: true
+  alertmanager:
+    enabled: true
+  grafana:
+    enabled: false  # Use separate Grafana below
+  
+  prometheus:
+    prometheusSpec:
+      retention: 30d
+      resources:
+        requests:
+          cpu: 200m
+          memory: 512Mi
+        limits:
+          cpu: 500m
+          memory: 1Gi
+      serviceMonitorSelector: {}
+      serviceMonitorSelectorNilUsesHelmValues: false
+
+grafana:
+  enabled: true
+  adminUser: admin
+  adminPassword: admin123
+  
+  # Configure Grafana for path-based routing
+  grafana.ini:
+    server:
+      root_url: "https://trascendence.42firenze.it/grafana"
+      serve_from_sub_path: true
+  
+  # Enable sidecar for dashboard provisioning
+  sidecar:
+    dashboards:
+      enabled: true
+      searchNamespace: ALL
+      folderAnnotation: grafana_folder
+      provider:
+        name: sidecarProvider
+        orgid: 1
+        folder: ''
+        type: file
+        disableDeletion: false
+        allowUiUpdates: true
+        foldersFromFilesStructure: true
+    datasources:
+      enabled: false
+  
+  # Init containers to create dashboard directories
+  extraInitContainers:
+    - name: create-dashboard-dirs
+      image: busybox:1.35
+      command: ['sh', '-c']
+      args:
+        - |
+          mkdir -p /var/lib/grafana/dashboards/k8s
+          mkdir -p /var/lib/grafana/dashboards/postgres
+          mkdir -p /var/lib/grafana/dashboards/django
+          mkdir -p /var/lib/grafana/dashboards/redis
+          mkdir -p /var/lib/grafana/dashboards/trascendence
+          chmod -R 777 /var/lib/grafana/dashboards
+      volumeMounts:
+        - name: storage
+          mountPath: /var/lib/grafana
+    
+  resources:
+    requests:
+      cpu: 100m
+      memory: 128Mi
+    limits:
+      cpu: 200m
+      memory: 256Mi
+  
+  # Datasources: Prometheus + Elasticsearch
+  datasources:
+    datasources.yaml:
+      apiVersion: 1
+      datasources:
+      - name: Prometheus
+        type: prometheus
+        access: proxy
+        url: http://my-umbrella-prometheus-prometheus:9090
+        isDefault: true
+      - name: Elasticsearch
+        type: elasticsearch
+        access: proxy
+        url: https://elasticsearch:9200
+        basicAuth: true
+        basicAuthUser: "elastic"
+        secureJsonData:
+          basicAuthPassword: "changeme"
+        jsonData:
+          esVersion: "8.5.1"
+          timeField: "@timestamp"
+          logMessageField: "message"
+          index: "trascendence-logs-*"
+          tlsSkipVerify: false
+  
+  # Pre-configured dashboards  
+  dashboardProviders:
+    dashboardproviders.yaml:
+      apiVersion: 1
+      providers:
+      - name: 'k8s-dashboards'
+        orgId: 1
+        folder: 'Kubernetes'
+        type: file
+        disableDeletion: false
+        editable: true
+        options:
+          path: /var/lib/grafana/dashboards/k8s
+      - name: 'postgres-dashboards'
+        orgId: 1
+        folder: 'PostgreSQL'
+        type: file
+        disableDeletion: false
+        editable: true
+        options:
+          path: /var/lib/grafana/dashboards/postgres
+      - name: 'django-dashboards'
+        orgId: 1
+        folder: 'Django Services'
+        type: file
+        disableDeletion: false
+        editable: true
+        options:
+          path: /var/lib/grafana/dashboards/django
+      - name: 'redis-dashboards'
+        orgId: 1
+        folder: 'Redis'
+        type: file
+        disableDeletion: false
+        editable: true
+        options:
+          path: /var/lib/grafana/dashboards/redis
+      - name: 'trascendence-dashboards'
+        orgId: 1
+        folder: 'Trascendence'
+        type: file
+        disableDeletion: false
+        editable: true
+        options:
+          path: /var/lib/grafana/dashboards/trascendence
+  
+  # Dashboard ConfigMaps - Using gnetId for automatic download
+  dashboards:
+    k8s:
+      k8s-cluster-overview:
+        gnetId: 15282
+        revision: 1
+        datasource: Prometheus
+        inputs:
+          - name: "DS_PROMETHEUS"
+            type: "datasource"
+            pluginId: "prometheus"
+            value: "Prometheus"
+      k8s-node-exporter:
+        gnetId: 1860
+        revision: 37
+        datasource: Prometheus
+        inputs:
+          - name: "DS_PROMETHEUS"
+            type: "datasource"
+            pluginId: "prometheus"
+            value: "Prometheus"
+    postgres:
+      postgres-overview:
+        gnetId: 9628
+        revision: 7
+        datasource: Prometheus
+        inputs:
+          - name: "DS_PROMETHEUS"
+            type: "datasource"
+            pluginId: "prometheus"
+            value: "Prometheus"
+      postgres-database:
+        gnetId: 455
+        revision: 2
+        datasource: Prometheus
+        inputs:
+          - name: "DS_PROMETHEUS"
+            type: "datasource"
+            pluginId: "prometheus"
+            value: "Prometheus"
+    django:
+      django-overview:
+        gnetId: 17658
+        revision: 1
+        datasource: Prometheus
+        # Fix datasource variable mapping
+        inputs:
+          - name: "DS_PROMETHEUS"
+            type: "datasource"
+            pluginId: "prometheus"
+            value: "Prometheus"
+    redis:
+      redis-overview:
+        gnetId: 763
+        revision: 5
+        datasource: Prometheus
+        inputs:
+          - name: "DS_PROMETHEUS"
+            type: "datasource"
+            pluginId: "prometheus"
+            value: "Prometheus"
+      redis-dashboard:
+        gnetId: 11835
+        revision: 1
+        datasource: Prometheus
+        inputs:
+          - name: "DS_PROMETHEUS"
+            type: "datasource"
+            pluginId: "prometheus"
+            value: "Prometheus"
+
+# ==============================================
+# SERVICE MONITORS (for Prometheus)
+# ==============================================
+serviceMonitors:
+  enabled: true
+  services:
+    - name: login-service
+      port: 8000
+      path: /metrics
+    - name: chat-service
+      port: 8001
+      path: /metrics
+    - name: user-service
+      port: 8002
+      path: /metrics
+    - name: notifications-service
+      port: 8003
+      path: /metrics
+    - name: pong-service
+      port: 8004
+      path: /metrics
+
+# ==============================================
+# INGRESS ROUTES (Traefik)
+# ==============================================
+ingressroutes:
+  enabled: true
+  domain: "trascendence.42firenze.it"
+  grafana:
+    enabled: true
+    host: "grafana.trascendence.42firenze.it"

@@ -1,0 +1,332 @@
+# Traefik Ingress Controller Configuration
+traefik-chart:
+  enabled: true
+  namespace:
+    name: kube-system
+    create: false
+  image:
+    repository: traefik
+    tag: "v3.3"
+    pullPolicy: IfNotPresent
+  deployment:
+    name: traefik
+    replicas: 1
+  service:
+    name: traefik
+    type: LoadBalancer
+    ports:
+      web:
+        port: 80
+        targetPort: web
+        protocol: TCP
+      websecure:
+        port: 443
+        targetPort: websecure
+        protocol: TCP
+  rbac:
+    create: true
+  serviceAccount:
+    create: true
+    name: traefik
+  resources:
+    limits:
+      cpu: 1000m
+      memory: 1000Mi
+    requests:
+      cpu: 100m
+      memory: 50Mi
+
+# Global values shared across all services
+global:
+  environment: production
+  helpers:
+    enabled: true
+
+  # Secret values referenced by all sub-charts
+  secrets:
+    # Database credentials
+    databases:
+      chat:
+        name: "chat_db"
+        user: "pasquale"
+        password: "123"
+      login:
+        name: "login_db"
+        user: "pasquale"
+        password: "123456"
+      user:
+        name: "user_db"
+        user: "pasquale" 
+        password: "123"
+      notifications:
+        name: "notifications_db"
+        user: "pasquale"
+        password: "123"
+      pong:
+        name: "pong_db"
+        user: "pasquale"
+        password: "123"
+    
+    # Admin credentials for each service
+    admin:
+      username: "pasquale"
+      email: "pasquale@example.com"
+      password: "123456"
+    
+    # Service authentication
+    serviceAuth:
+      password: "123"
+      apiKey: "casealbero"
+      secretKey: "bipyIy0zaGN4eThqcTlfdy0qXnlhamwwajcyYXB3cEE1KXM0NTczXjYlazJjZ2IqOT0t"
+    
+    # OAuth/SSO credentials
+    oauth:
+      google:
+        clientId: "PLACEHOLDER_GOOGLE_CLIENT_ID"
+        clientSecret: "PLACEHOLDER_GOOGLE_CLIENT_SECRET"
+      fortytwo:
+        clientId: "u-s4t2ud-2bfa13277753ae18dd3d2a1e2558656b1dddb45e275126ae690788817a769a9a4e"
+        clientSecret: "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"
+
+
+# Frontend-specific overrides
+frontend:
+  hostAliases:
+    - ip: "192.168.49.2"
+      hostnames:
+        - "trascendence.42firenze.it"
+  image:
+    repository: marcor42/frontend
+    tag: latest
+
+# Service controls
+front-end:
+  enabled: true
+
+chat-service:
+  enabled: true
+
+# API Documentation service
+api-docs:
+  enabled: true
+
+# Redis Configuration
+redis:
+  enabled: true
+
+# Certificate Manager Configuration
+cert-manager:
+  enabled: true
+  installCRDs: false
+  
+  webhook:
+    enabled: true
+  
+  cainjector:
+    enabled: true
+
+cert-manager-config:
+  clusterIssuers:
+    selfsigned:
+      enabled: true
+      name: selfsigned-issuer
+    letsencrypt:
+      enabled: false
+      name: letsencrypt-prod
+      email: qualcosa2001@gmail.com
+      server: https://acme-v02.api.letsencrypt.org/directory
+      privateKeySecretName: letsencrypt-prod
+      solvers:
+        - http01:
+            ingressClass: traefik
+
+# Global ingress settings
+ingress:
+  enabled: true
+  className: traefik
+  host: trascendence.42firenze.it
+  annotations:
+    cert-manager.io/cluster-issuer: selfsigned-issuer
+  tls:
+    enabled: true
+    secretName: trascendence-tls
+
+# Persistence settings
+persistence:
+  enabled: true
+  chat:
+    enabled: true
+    size: 512Mi
+
+# Chart-specific configurations
+# FRONT-END CHART
+front-end-chart:
+  ingress:
+    enabled: true
+    host: trascendence.42firenze.it
+
+# CHAT SERVICE CHART
+chat-service-chart:
+  image:
+    repository: bombatomica/chat
+    tag: latest
+    pullPolicy: Always
+  
+  # Chat service configuration - using subchart's own values
+  
+  ingress:
+    enabled: true
+    host: trascendence.42firenze.it
+    path: /api/chat
+
+# LOGIN SERVICE CHART
+login-service-chart:
+  # No secret overrides needed - will use global secrets directly  # Login service configuration - using subchart's own values
+  
+  ingress:
+    enabled: true
+    host: trascendence.42firenze.it
+    path: /api/login
+    certManager:
+      clusterIssuer: selfsigned-issuer
+
+# USER SERVICE CHART  
+user-service-chart:
+  ingress:
+    enabled: true
+    host: trascendence.42firenze.it
+    path: /api/user
+    certManager:
+      clusterIssuer: selfsigned-issuer
+
+# NOTIFICATIONS SERVICE CHART
+notifications-service-chart:
+  ingress:
+    enabled: true
+    host: trascendence.42firenze.it
+    path: /api/notifications
+    certManager:
+      clusterIssuer: selfsigned-issuer
+
+# PONG SERVICE CHART
+pong-service-chart:
+  ingress:
+    enabled: true
+    host: trascendence.42firenze.it
+    path: /api/pong
+    certManager:
+      clusterIssuer: selfsigned-issuer
+
+# API DOCS SERVICE CHART
+api-docs-service-chart:
+  image:
+    repository: bombatomica/docs
+    tag: latest
+    pullPolicy: Always
+  ingress:
+    enabled: true
+    host: trascendence.42firenze.it
+    path: /api/docs
+    certManager:
+      clusterIssuer: selfsigned-issuer
+
+# OBSERVABILITY STACK CONFIGURATION
+observability:
+  enabled: true
+
+# OBSERVABILITY CHART
+observability-chart:
+  # Inherit simplified configuration from observability-chart/values.yaml
+  enabled: true
+  
+  # Global namespace configuration
+  global:
+    namespace:
+      create: true
+      name: "observability"
+  
+  # Enable core ELK components
+  elasticsearch:
+    enabled: false
+    namespaceOverride: "observability"
+  
+  kibana:
+    enabled: false
+    namespaceOverride: "observability"
+  
+  logstash:
+    enabled: false
+    namespaceOverride: "observability"
+  
+  filebeat:
+    enabled: false
+    namespaceOverride: "observability"
+  
+  # Enable monitoring components
+  prometheus:
+    enabled: true
+  
+  grafana:
+    enabled: true
+    adminUser: admin
+    adminPassword: admin123
+  
+  # Ingress routes for external access
+  ingressroutes:
+    enabled: true
+    domain: "trascendence.42firenze.it"
+  
+  # Resource limits
+  resources:
+    elasticsearch:
+      requests:
+        memory: "1Gi"
+        cpu: "500m"
+      limits:
+        memory: "2Gi"
+        cpu: "1000m"
+    logstash:
+      requests:
+        memory: "512Mi"
+        cpu: "250m"
+      limits:
+        memory: "1Gi"
+        cpu: "500m"
+    kibana:
+      requests:
+        memory: "512Mi"
+        cpu: "250m"
+      limits:
+        memory: "1Gi"
+        cpu: "500m"
+    grafana:
+      requests:
+        memory: "256Mi"
+        cpu: "100m"
+      limits:
+        memory: "512Mi"
+        cpu: "200m"
+  
+  # Monitoring targets - let subchart handle service discovery
+  serviceMonitors:
+    trascendence:
+      enabled: true
+      # Service names will be auto-discovered by the observability chart
+  
+  # Alerting configuration
+  alerting:
+    enabled: true
+    rules:
+      serviceHealth: true
+      resourceUsage: true
+      errorRate: true
+  
+  # Dashboard configuration
+  dashboards:
+    grafana:
+      trascendence: true
+      kubernetes: true
+      nginx: true
+    kibana:
+      logs: true
+      django: true

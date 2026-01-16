@@ -1,0 +1,144 @@
+# Default values for chat service chart
+replicaCount: 1
+
+image:
+  repository: bombatomica/chat
+  pullPolicy: Always
+  tag: latest
+
+nameOverride: ""
+fullnameOverride: ""
+
+namespace:
+  name: chat
+  create: true
+
+service:
+  type: ClusterIP
+  port: 8000
+  targetPort: 8000
+
+serviceAccount:
+  dbName: "chat-db-service-account"
+  create: true
+  annotations: {}
+  automount: true
+  dbAnnotations: {}
+  dbAutomount: true
+
+resources:
+  limits:
+    cpu: 500m
+    memory: 512Mi
+  requests:
+    cpu: 250m
+    memory: 256Mi
+
+configMap:
+  data:
+    DEBUG: "True"
+    DJANGO_SETTINGS_MODULE: "chat.settings"
+    CHAT_PORT: "8000"
+    CHAT_HOST: "0.0.0.0"
+    POSTGRES_HOST: "{{ .Release.Name }}-chat-db-service"
+    POSTGRES_PORT: "5432"
+    POSTGRES_DB: "chat_db"
+    POSTGRES_USER: "pasquale"
+    POSTGRES_PASSWORD: "123"
+    REDIS_HOST: "{{ .Release.Name }}-redis-chart-service.redis-namespace.svc.cluster.local"
+    REDIS_PORT: "6379"
+    REDIS_CACHE_DB: "1" # Redis DB for caching
+    REDIS_ONLINE_STATUS_DB: "0" # Shared DB for online status
+    LOGIN_URL: "http://{{ .Release.Name }}-login-service.login.svc.cluster.local:8000"
+    USER_URL: "http://{{ .Release.Name }}-user-service.user.svc.cluster.local:8000"
+    NOTIFICATIONS_URL: "http://{{ .Release.Name }}-notifications-service.notifications.svc.cluster.local:8000"
+    PONG_URL: "http://{{ .Release.Name }}-pong-service.pong.svc.cluster.local:8000"
+    OAUTH2_INTROSPECTION_URL: "http://{{ .Release.Name }}-login-service.login.svc.cluster.local:8000/o/introspect/"
+    SERVICE_PASSWORD: "123"
+    # Kubernetes service hosts for ALLOWED_HOSTS (comma-separated)
+    K8S_SERVICE_HOSTS: "{{ .Release.Name }}-login-service,{{ .Release.Name }}-login-service.login.svc.cluster.local,{{ .Release.Name }}-chat-service,{{ .Release.Name }}-chat-service.chat.svc.cluster.local,{{ .Release.Name }}-user-service,{{ .Release.Name }}-user-service.user.svc.cluster.local,{{ .Release.Name }}-notifications-service,{{ .Release.Name }}-notifications-service.notifications.svc.cluster.local,{{ .Release.Name }}-pong-service,{{ .Release.Name }}-pong-service.pong.svc.cluster.local"
+    ALLOWED_HOSTS: "*"
+
+secrets:
+  database:
+    name: "chat_db"
+    user: "pasquale"
+    password: "123"
+  admin:
+    username: "pasquale"
+    password: "123456"
+    email: "pasquale@example.com"
+    secretKey: "bipyIy0zaGN4eThqcTlfdy0qXnlhamwwajcyYXB3cEE1KXM0NTczXjYlazJjZ2IqOT0t"
+  servicePassword: "123"
+
+ingress:
+  enabled: true
+  className: traefik
+  host: trascendence.42firenze.it
+  path: /api/chat
+  pathType: Prefix
+  annotations: {}
+  certManager:
+    clusterIssuer: letsencrypt-prod
+  ssl:
+    forceRedirect: "true"
+  tls:
+    enabled: true
+    secretName: chat-tls
+
+autoscaling:
+  enabled: true
+  minReplicas: 1
+  maxReplicas: 1
+  targetCPUUtilizationPercentage: 80
+  targetMemoryUtilizationPercentage: 80
+
+persistence:
+  enabled: true
+  storageClass: ""
+  size: 512Mi
+  annotations: {}
+
+db:
+  enabled: true # Set to true to deploy PostgreSQL along with the login service
+  image:
+    repository: postgres
+    tag: "17" # Specify your desired postgres version
+    pullPolicy: IfNotPresent
+  service:
+    port: 5432
+  resources:
+    limits:
+      cpu: "1"
+      memory: "1Gi"
+    requests:
+      cpu: "250m"
+      memory: "256Mi"
+  persistence:
+    enabled: true
+    storageClass: "" # Optional: If blank, uses default SC. Set to "-" to disable SC.
+    size: "1Gi"
+    annotations: {}
+  # PostgreSQL specific environment variables for the subchart
+  # These are used to initialize the PostgreSQL instance if db.enabled is true.
+  # The login application itself will use the values from .Values.secrets.database.*
+  postgresqlUsername: "" # Will default to .Values.secrets.database.user if not set and db.enabled=true
+  postgresqlPassword: "" # Will default to .Values.secrets.database.password if not set and db.enabled=true
+  postgresqlDatabase: "" # Will default to .Values.secrets.database.name if not set and db.enabled=true
+  
+  # PostgreSQL Exporter for monitoring
+  exporter:
+    enabled: true
+    image:
+      repository: prometheuscommunity/postgres-exporter
+      tag: "v0.12.0"
+      pullPolicy: IfNotPresent
+    resources:
+      limits:
+        cpu: 100m
+        memory: 128Mi
+      requests:
+        cpu: 50m
+        memory: 64Mi
+
+
