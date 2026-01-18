@@ -83,7 +83,7 @@ The project includes a comprehensive script (`start-k3s.sh`) that sets up the en
     *   *Configure local DNS in `/etc/hosts`.*
 
 3.  **Access the Application**
-    *   **Frontend**: [https://trascendence.42firenze.it](https://trascendence.42firenze.it)
+    *   **Frontend**: [https://localhost/#login](https://localhost/#login)
     *   **Grafana**: [https://grafana.trascendence.local](https://grafana.trascendence.local) (Default: `admin`/`admin123`)
     *   **API Docs**: `http://localhost:8005` (Swagger/ReDoc)
 

@@ -1,0 +1,19 @@
+# CRDs Chart Configuration
+# This chart manages Custom Resource Definitions for the Trascendence project
+
+# Global settings inherited from parent umbrella chart
+global: {}
+
+# Chart-specific settings
+crds:
+  # Enable/disable CRD installation
+  enabled: true
+  
+  # Timeout for CRD installation job
+  jobTimeout: 300s
+  
+  # Image settings for kubectl container
+  image:
+    repository: bitnami/kubectl
+    tag: "1.28"
+    pullPolicy: IfNotPresent
