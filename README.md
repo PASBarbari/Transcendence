@@ -8,7 +8,7 @@
 
 A comprehensive web application featuring a multiplayer Pong game with real-time chat, user management, and social features. Built with a microservices architecture using Django, WebSockets, and deployed on Kubernetes (K3s).
 
-## 🏗️ Architecture
+## Architecture
 
 This application follows a microservices architecture orchestrated by K3s:
 
@@ -22,9 +22,9 @@ This application follows a microservices architecture orchestrated by K3s:
 *   **Infrastructure**: Helm Charts for deployment, Traefik as Ingress Controller.
 *   **Monitoring**: Grafana and Prometheus for observability.
 
-## ✨ Features
+## Features
 
-### 🎮 Pong Game
+### Pong Game
 *   **Real-time Multiplayer**: Low-latency matches via WebSockets.
 *   **3D Graphics**: Immersive experience powered by Three.js.
 *   **Game Modes**:
@@ -33,28 +33,28 @@ This application follows a microservices architecture orchestrated by K3s:
     *   **Tournament**: Organized brackets and competitions.
 *   **Customization**: Paddle skins, ball colors, and game speed settings.
 
-### 🔐 Authentication & Security
+### Authentication & Security
 *   **JWT Token Authentication**: Secure session management.
 *   **OAuth2 Integration**: Login with 42 Intra.
 *   **Two-Factor Authentication (2FA)**: Enhanced account security.
 *   **Session Management**: Automatic token refresh and validation.
 
-### 💬 Real-time Chat
+### Real-time Chat
 *   **Global Chat**: Community discussions.
 *   **Private Messages**: Direct messaging between friends.
 *   **Group Chats**: Create channels and invite users.
 *   **Features**: User blocking, online status indicators, and game invites.
 
-### 👤 User Profiles
+### User Profiles
 *   **Statistics**: Win/Loss ratio, match history, and performance graphs.
 *   **Social**: Friend requests, block lists, and online status.
 *   **Avatars**: Upload custom profile pictures.
 
-### 🔔 Notification System
+### Notification System
 *   **Real-time Alerts**: Instant updates for game invites, messages, and friend requests.
 *   **History**: Review past notifications.
 
-## 🚀 Installation & Setup
+## Installation & Setup
 
 ### Prerequisites
 *   Linux Environment (Ubuntu 20.04+ recommended)
@@ -87,7 +87,7 @@ The project includes a comprehensive script (`start-k3s.sh`) that sets up the en
     *   **Grafana**: [https://grafana.trascendence.local](https://grafana.trascendence.local) (Default: `admin`/`admin123`)
     *   **API Docs**: `http://localhost:8005` (Swagger/ReDoc)
 
-## 📂 Project Structure
+## Project Structure
 
 ```
 Transcendence/
@@ -105,7 +105,7 @@ Transcendence/
 └── start-k3s.sh             # Main Deployment Script
 ```
 
-## 🔌 API Endpoints
+## API Endpoints
 
 ### Authentication Service (Port 8000)
 *   `POST /api/auth/login/` - User login
@@ -124,7 +124,7 @@ Transcendence/
 *   `POST /api/pong/games/` - Create game
 *   `GET /api/pong/games/{id}/` - Get game state
 
-## 🔮 Future Improvements
+## Future Improvements
 
 *   **AI Difficulty Levels**: varied machine learning models for opponents.
 *   **Mobile Support**: Touch controls and responsive layout.
